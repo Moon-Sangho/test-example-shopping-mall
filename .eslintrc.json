@@ -69,6 +69,10 @@
         "afterAll": true,
         "vi": true
       }
+    },
+    {
+      "files": ["server/**/*.js"],
+      "env": { "node": true, "es2021": true }
     }
   ]
 }
