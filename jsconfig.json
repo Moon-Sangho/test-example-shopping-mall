@@ -2,8 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "es6",
+    "skipLibCheck": true,
+    "types": [],
+    "typeRoots": [],
     "paths": {
       "@/*": ["./src/*"]
     }
+  },
+  "typeAcquisition": {
+    "enable": false
   }
 }
