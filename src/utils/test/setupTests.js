@@ -7,6 +7,7 @@ import { handlers } from '@/__mocks__/handlers';
 export const server = setupServer(...handlers);
 
 beforeAll(() => {
+  // 테스트 환경에서 API 호출은 msw 핸들러에 설정한 응답으로 모킹
   server.listen();
 });
 

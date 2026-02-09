@@ -27,11 +27,51 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-it('로딩이 완료된 경우 상품 리스트가 제대로 모두 노출된다', async () => {});
+it('로딩이 완료된 경우 상품 리스트가 제대로 모두 노출된다', async () => {
+  await render(<ProductList limit={PRODUCT_PAGE_LIMIT} />);
 
-it('보여줄 상품 리스트가 더 있는 경우 show more 버튼이 노출되며, 버튼을 누르면 상품 리스트를 더 가져온다.', async () => {});
+  // findByTestId는 1초 동안 50ms마다 요소가 있는지 조회
+  const productCards = await screen.findAllByTestId('product-card');
+  expect(productCards).toHaveLength(PRODUCT_PAGE_LIMIT);
 
-it('보여줄 상품 리스트가 없는 경우 show more 버튼이 노출되지 않는다.', async () => {});
+  productCards.forEach((card, index) => {
+    const productCard = within(card);
+    const product = data.products[index];
+
+    expect(productCard.getByText(product.title)).toBeInTheDocument();
+    expect(productCard.getByText(product.category.name)).toBeInTheDocument();
+    expect(
+      productCard.getByText(formatPrice(product.price)),
+    ).toBeInTheDocument();
+    expect(
+      productCard.getByRole('button', { name: '장바구니' }),
+    ).toBeInTheDocument();
+    expect(
+      productCard.getByRole('button', { name: '구매' }),
+    ).toBeInTheDocument();
+  });
+});
+
+it('보여줄 상품 리스트가 더 있는 경우 show more 버튼이 노출되며, 버튼을 누르면 상품 리스트를 더 가져온다.', async () => {
+  const { user } = await render(<ProductList limit={PRODUCT_PAGE_LIMIT} />);
+
+  await screen.findAllByTestId('product-card');
+  const showMoreBtn = screen.getByRole('button', { name: 'Show more' });
+  expect(showMoreBtn).toBeInTheDocument();
+
+  await user.click(showMoreBtn);
+  const productCards = await screen.findAllByTestId('product-card');
+  expect(productCards).toHaveLength(PRODUCT_PAGE_LIMIT * 2);
+});
+
+it('보여줄 상품 리스트가 없는 경우 show more 버튼이 노출되지 않는다.', async () => {
+  // 모킹 데이터 20개보다 많은 수 50을 limit으로 설정
+  await render(<ProductList limit={50} />);
+
+  await screen.findAllByTestId('product-card');
+
+  expect(screen.queryByText('Show more')).not.toBeInTheDocument();
+});
 
 describe('로그인 상태일 경우', () => {
   beforeEach(() => {
@@ -53,10 +93,10 @@ describe('로그인 상태일 경우', () => {
     );
 
     expect(addCartItemFn).toHaveBeenNthCalledWith(
-      1,
-      data.products[productIndex],
-      10,
-      1,
+      1, // 1번 호출
+      data.products[productIndex], // 선택된 상품 객체
+      10, // 사용자 ID (로그인된 사용자)
+      1, // 구매 수량
     );
     expect(navigateFn).toHaveBeenNthCalledWith(1, '/cart');
   });
